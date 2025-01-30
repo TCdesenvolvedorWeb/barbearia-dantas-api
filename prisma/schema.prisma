@@ -7,22 +7,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Agendamento {
-  id         Int       @id @default(autoincrement())
-  cliente_id Int?
-  data       DateTime? @db.Date
-  horario    DateTime? @db.Time(6)
-  clientes   Cliente? @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("agendamentos")
-}
-
 model Cliente {
-  id           Int            @id @default(autoincrement())
-  nome         String?        @db.VarChar(100)
-  email        String?        @db.VarChar(100)
-  senha        String?        @db.VarChar(100)
-  agendamentos Agendamento[]
+  id                                                  Int            @id @default(autoincrement())
+  name                                                String?        @db.VarChar(50)
+  email                                               String?        @db.VarChar(50)
+  phone                                               String?        @db.VarChar(11)
+  role                                                String?        @db.VarChar(50)
+  appointments_appointments_client_idToclientes       Appointment[]  @relation("appointments_client_idToclientes")
+  appointments_appointments_professional_idToclientes Appointment[]  @relation("appointments_professional_idToclientes")
+  availability                                        Availability[]
 
   @@map("clientes")
+}
+
+model Availability {
+  id              Int       @id @default(autoincrement())
+  professional_id Int?
+  day_of_week     String?   @db.VarChar(50)
+  start_time      DateTime? @db.Time(6)
+  end_time        DateTime? @db.Time(6)
+  clientes        Cliente?  @relation(fields: [professional_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("availability")
+}
+
+model Service {
+  id           Int           @id @default(autoincrement())
+  name         String?       @db.VarChar(50)
+  price        Float?        @db.Real
+  appointments Appointment[]
+
+  @@map("services")
+}
+
+model Appointment {
+  id                                              Int       @id @default(autoincrement())
+  professional_id                                 Int?
+  client_id                                       Int?
+  service_id                                      Int?
+  date_time                                       DateTime? @db.Timestamp(6)
+  clientes_appointments_client_idToclientes       Cliente?  @relation("appointments_client_idToclientes", fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clientes_appointments_professional_idToclientes Cliente?  @relation("appointments_professional_idToclientes", fields: [professional_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  services                                        Service?  @relation(fields: [service_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("appointments")
 }
