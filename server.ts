@@ -45,12 +45,10 @@ app.post("/agendar", async (req: any, res: any) => {
       },
     });
   } catch (error) {
-    return res
-      .status(500)
-      .send({
-        message: "Não foi possivel realizar o agendamento, tente novamente!",
-        error,
-      });
+    return res.status(500).send({
+      message: "Não foi possivel realizar o agendamento, tente novamente!",
+      error,
+    });
   }
 
   res.status(200).send({ message: `Horário agendado com sucesso.` });
@@ -69,19 +67,19 @@ app.put("/agendar/:id", async (req: any, res: any) => {
     });
 
     if (!searchId)
-      return res
-        .status(404)
-        .send({
-          message:
-            " Agendamento não encontrado, verifique se realmente foi agendado horário!",
-        });
+      return res.status(404).send({
+        message:
+          " Agendamento não encontrado, verifique se realmente foi agendado horário!",
+      });
 
     const data = { ...req.body };
-    data.date_time = data.date_time ? new Date(`${data.date_time}Z`) : undefined;
+    data.date_time = data.date_time
+      ? new Date(`${data.date_time}Z`)
+      : undefined;
 
     const alreadyBookedBenUsed = await prisma.appointment.findFirst({
       where: {
-        date_time: data.date_time
+        date_time: data.date_time,
       },
     });
 
@@ -92,21 +90,39 @@ app.put("/agendar/:id", async (req: any, res: any) => {
 
     await prisma.appointment.update({
       where: {
-        id
+        id,
       },
-      data: data
+      data: data,
     });
-
   } catch (error) {
-    return res
-      .status(500)
-      .send({
-        message: "Não foi possivel remarcar o horário, tente novamente!",
-        error,
-      });
+    return res.status(500).send({
+      message: "Não foi possivel remarcar o horário, tente novamente!",
+      error,
+    });
   }
 
   res.status(200).send({ message: `Horário remarcado com sucesso.` });
+});
+
+//remover agendamento
+app.delete("/desmarcar/:id", async (req: any, res: any) => {
+  const id = Number(req.params.id);
+
+  try {
+    const removeHorario = await prisma.appointment.findUnique({ where: { id } });
+
+  if (!removeHorario){
+    return res.status(404).send({ 
+      message: "Horário não encontrado, verifique se realmente foi agendado horário!",
+    });
+  }
+    
+  await prisma.appointment.delete({ where: { id } });
+  } catch(error) {
+    return res.status(500).send({ message: ` Não foi possível descamar o horário.`})
+  }
+
+  res.status(200).send({message: 'Horário desmarcado com sucesso.'})
 });
 
 app.listen(port, () => {
